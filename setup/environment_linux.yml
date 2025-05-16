@@ -1,0 +1,14 @@
+name: T2Ranking
+channels:
+  - conda-forge
+  - pytorch
+  - nvidia
+  - defaults
+dependencies:
+  - python=3.12
+  - anaconda
+  - pip
+  - pip:
+      - torch==2.7.0
+      - transformers
+      - datasets
