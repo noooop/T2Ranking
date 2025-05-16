@@ -29,16 +29,19 @@ class CrossEncoderConfig(NamedTuple):
 
     epochs: int = 4
 
-    batch_size: int = 8
+    batch_size: int = 16 * 8
     dev_batch_size: int = 512
+    per_device_train_batch_size: int = 8
 
     learning_rate: float = 2e-5
 
     model_out_dir: str = "output"
+    num_labels: int = 1
 
     dtype: str = "float16"
-    report: int = 100
+    report: int = 1
     gradient_checkpoint: bool = True
+    warmup_proportion = 0.1
 
     t2ranking_data: Path = t2ranking_data
 
