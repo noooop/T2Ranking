@@ -6,14 +6,13 @@ Creation Date : 06/12/2018
 Last Modified : 4/6/2023 by Qian Dong <dq22@mails.tsinghua.edu.cn> and Haitao Li<liht22@mails.tsinghua.edu.cn>
 Authors : Daniel Campos <dacamp@microsoft.com>, Rutger van Haasteren <ruvanh@microsoft.com>
 """
-import itertools
 import sys
 from collections import Counter
 
-import numpy as np
 import pandas as pd
 
 MaxMRRRank = 10
+
 
 def load_reference_from_stream(f):
     """Load Reference reference relevant passages
@@ -82,7 +81,8 @@ def load_candidate(path_to_candidate):
     return qid_to_ranked_candidate_passages
 
 
-def quality_checks_qids(qids_to_relevant_passageids, qids_to_ranked_candidate_passages):
+def quality_checks_qids(qids_to_relevant_passageids,
+                        qids_to_ranked_candidate_passages):
     """Perform quality checks on the dictionaries
     Args:
     p_qids_to_relevant_passageids (dict): dictionary of query-passage mapping
@@ -101,8 +101,10 @@ def quality_checks_qids(qids_to_relevant_passageids, qids_to_ranked_candidate_pa
     # Check that we do not have multiple passages per query
     for qid in qids_to_ranked_candidate_passages:
         # Remove all zeros from the candidates
-        duplicate_pids = set(
-            [item for item, count in Counter(qids_to_ranked_candidate_passages[qid]).items() if count > 1])
+        duplicate_pids = set([
+            item for item, count in Counter(
+                qids_to_ranked_candidate_passages[qid]).items() if count > 1
+        ])
 
         if len(duplicate_pids - set([0])) > 0:
             message = "Cannot rank a passage multiple times for a single query. QID={qid}, PID={pid}".format(
@@ -112,7 +114,8 @@ def quality_checks_qids(qids_to_relevant_passageids, qids_to_ranked_candidate_pa
     return allowed, message
 
 
-def compute_metrics(qids_to_relevant_passageids, qids_to_ranked_candidate_passages):
+def compute_metrics(qids_to_relevant_passageids,
+                    qids_to_ranked_candidate_passages):
     """Compute MRR metric
     Args:
     p_qids_to_relevant_passageids (dict): dictionary of query-passage mapping
@@ -152,12 +155,12 @@ def compute_metrics(qids_to_relevant_passageids, qids_to_ranked_candidate_passag
                         recall_q_top1000.append(pid)
                     if i == 0:
                         recall_q_top1.append(pid)
-                
-                    
-    if len(ranking) == 0:
-        raise IOError("No matching QIDs found. Are you sure you are scoring the evaluation set?")
 
-   
+    if len(ranking) == 0:
+        raise IOError(
+            "No matching QIDs found. Are you sure you are scoring the evaluation set?"
+        )
+
     MRR = MRR / len(qids_to_ranked_candidate_passages)
     recall_top1 = len(recall_q_top1) * 1.0 / all_num
     recall_top50 = len(recall_q_top50) * 1.0 / all_num
@@ -170,7 +173,9 @@ def compute_metrics(qids_to_relevant_passageids, qids_to_ranked_candidate_passag
     return all_scores
 
 
-def compute_metrics_from_files(path_to_reference, path_to_candidate, perform_checks=True):
+def compute_metrics_from_files(path_to_reference,
+                               path_to_candidate,
+                               perform_checks=True):
     """Compute MRR metric
     Args:
     p_path_to_reference_file (str): path to reference file.
@@ -190,10 +195,12 @@ def compute_metrics_from_files(path_to_reference, path_to_candidate, perform_che
     qids_to_relevant_passageids = load_reference(path_to_reference)
     qids_to_ranked_candidate_passages = load_candidate(path_to_candidate)
     if perform_checks:
-        allowed, message = quality_checks_qids(qids_to_relevant_passageids, qids_to_ranked_candidate_passages)
+        allowed, message = quality_checks_qids(
+            qids_to_relevant_passageids, qids_to_ranked_candidate_passages)
         if message != '': print(message)
 
-    return compute_metrics(qids_to_relevant_passageids, qids_to_ranked_candidate_passages)
+    return compute_metrics(qids_to_relevant_passageids,
+                           qids_to_ranked_candidate_passages)
 
 
 def main():
@@ -206,7 +213,9 @@ def main():
         path_to_candidate = sys.argv[2]
 
     else:
-        print('Usage: msmarco_eval_ranking.py <reference ranking> <candidate ranking>')
+        print(
+            'Usage: msmarco_eval_ranking.py <reference ranking> <candidate ranking>'
+        )
         exit()
 
     metrics = compute_metrics_from_files(path_to_reference, path_to_candidate)
@@ -229,20 +238,22 @@ def calc_mrr(path_to_reference, path_to_candidate):
     return metrics
 
 
-def get_mrr(path_to_reference="/home/dongqian06/codes/NAACL2021-RocketQA/corpus/marco/qrels.dev.tsv", path_to_candidate="output/step_0_pred_dev_scores.txt"):
-    all_data = pd.read_csv(path_to_candidate,sep="\t",header=None)
-    all_data.columns = ["qid","pid","score"]
-    all_data = all_data.groupby("qid").apply(lambda x: x.sort_values('score', ascending=False).reset_index(drop=True))
-    all_data.columns = ['query_id',"para_id","score"]
+def get_mrr(path_to_reference, path_to_candidate):
+    all_data = pd.read_csv(path_to_candidate, sep="\t", header=None)
+    all_data.columns = ["qid", "pid", "score"]
+    all_data = all_data.groupby("qid").apply(lambda x: x.sort_values(
+        'score', ascending=False).reset_index(drop=True))
+    all_data.columns = ['query_id', "para_id", "score"]
     all_data = all_data.reset_index()
     all_data.pop("qid")
-    all_data.columns = ["index","qid","pid","score"]
-    all_data = all_data.loc[:,["qid","pid","index","score"]]
-    all_data['index']+=1
-    path_to_candidate = path_to_candidate.replace("txt","qrels")
-    all_data.to_csv(path_to_candidate, header=None,index=False,sep="\t")
+    all_data.columns = ["index", "qid", "pid", "score"]
+    all_data = all_data.loc[:, ["qid", "pid", "index", "score"]]
+    all_data['index'] += 1
+    path_to_candidate = path_to_candidate.replace("txt", "qrels")
+    all_data.to_csv(path_to_candidate, header=None, index=False, sep="\t")
     metrics = compute_metrics_from_files(path_to_reference, path_to_candidate)
     return metrics['MRR @10']
+
 
 if __name__ == '__main__':
     main()
